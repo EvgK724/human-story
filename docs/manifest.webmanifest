@@ -1,0 +1,26 @@
+{
+  "id": "./",
+  "name": "Human Story — История человека",
+  "short_name": "Human Story",
+  "description": "История человека: короткие уроки, тренировки и английские слова с голосом Ryan.",
+  "lang": "ru",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#101522",
+  "theme_color": "#101522",
+  "icons": [
+    {
+      "src": "./human-story-touch-192-v2.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./human-story-touch-512-v2.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

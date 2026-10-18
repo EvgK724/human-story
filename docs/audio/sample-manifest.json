@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "voice": "en-GB-RyanNeural",
+  "voiceMetadata": {
+    "Name": "Microsoft Server Speech Text to Speech Voice (en-GB, RyanNeural)",
+    "ShortName": "en-GB-RyanNeural",
+    "Gender": "Male",
+    "Locale": "en-GB",
+    "LocaleName": "English (United Kingdom)",
+    "SuggestedCodec": "audio-24khz-48kbitrate-mono-mp3",
+    "FriendlyName": "Microsoft Ryan Online (Natural) - English (United Kingdom)",
+    "Status": "GA",
+    "VoiceTag": {
+      "ContentCategories": [
+        "General"
+      ],
+      "VoicePersonalities": [
+        "Friendly",
+        "Positive"
+      ]
+    }
+  },
+  "rate": "+0%",
+  "createdAt": "2026-10-18T08:08:20.117468+00:00",
+  "source": "sample-only",
+  "complete": true,
+  "clips": [
+    {
+      "id": "ryan-sample",
+      "kind": "word",
+      "text": "Human. Human history.",
+      "file": "ryan-sample.mp3",
+      "url": "audio/ryan-sample.mp3",
+      "textSha256": "7dc6ab0325773724a156326b075f86fe39152d5c3af73e2fdcb234c2c790449a",
+      "status": "ready",
+      "duration": 3.384,
+      "bytes": 20304,
+      "sampleRate": 24000,
+      "channels": 1
+    }
+  ],
+  "failures": []
+}
