@@ -2,6 +2,11 @@
 
 const VERSION = '2026-10-18-1';
 const SCOPE = new URL(self.registration.scope);
+const HELLAS_PATH = new URL('./hellas-atlas/', SCOPE).pathname;
+function isHellasURL(url) {
+  return url.origin === SCOPE.origin &&
+    (url.pathname === HELLAS_PATH.slice(0, -1) || url.pathname.startsWith(HELLAS_PATH));
+}
 const CACHE_PREFIX = `human-story-${encodeURIComponent(SCOPE.pathname)}-`;
 const CACHE = `${CACHE_PREFIX}${VERSION}`;
 // This release includes the complete local library, including every Ryan recording.
@@ -323,7 +328,15 @@ self.addEventListener('install', event => {
 self.addEventListener('activate', event => {
   // Finish activation promptly, so online reading/playback is not blocked while
   // the whole library downloads. offline.js starts the durable message event.
-  event.waitUntil(self.clients.claim());
+  event.waitUntil((async () => {
+    await self.clients.claim();
+    // An older worker may have served Human Story's cached document for this
+    // separate app. Reload only those windows after its routes are excluded.
+    const windows = await self.clients.matchAll({ type: 'window' });
+    await Promise.allSettled(windows
+      .filter(client => isHellasURL(new URL(client.url)))
+      .map(client => client.navigate(client.url)));
+  })());
 });
 
 self.addEventListener('message', event => {
@@ -361,6 +374,8 @@ async function rangedAudio(response, range) {
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
   if (event.request.method !== 'GET' || url.origin !== SCOPE.origin || !url.pathname.startsWith(SCOPE.pathname)) return;
+  // Hellas is independently hosted below this scope and must use its own files.
+  if (isHellasURL(url)) return;
   url.search = '';
   url.hash = '';
   const isNavigation = event.request.mode === 'navigate';

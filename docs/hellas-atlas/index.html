@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#070d19">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Эллада">
+<meta name="description" content="Четыре великих грека: Аристотель, Архимед, Геродот и Гиппократ. Даты жизни, открытия и главные труды в полноэкранном атласе.">
+<title>Эллада · Четыре великих ума</title>
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="apple-touch-icon" href="assets/icon-192.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="stylesheet" href="style.css">
+<script defer src="data.js"></script>
+<script defer src="app.js"></script>
+</head>
+<body>
+<div class="ambient ambient-cyan" aria-hidden="true"></div><div class="ambient ambient-violet" aria-hidden="true"></div>
+<div class="app-shell">
+<header class="app-header">
+<a href="#people" class="brand" aria-label="Эллада — личности"><svg viewBox="0 0 40 44" fill="none" aria-hidden="true"><path d="M5 9h30M8 14h24M9 36h22M5 41h30M12 16v18m8-18v18m8-18v18M5 7l15-5 15 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>ЭЛЛАДА<small>ЧЕТЫРЕ ВЕЛИКИХ УМА</small></span></a>
+<div class="header-actions">
+<a href="#sources" class="icon-button" aria-label="Источники" title="Источники"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 11v6M12 7v1" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></a>
+<a href="qr-link.html" class="icon-button" aria-label="QR-код и ссылка" title="QR-код и ссылка"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h3v3h-3zM20 14v7h-6M17 20v-3" stroke="currentColor" stroke-width="1.5"/></svg></a>
+<button id="fullscreen" class="icon-button" aria-label="На весь экран" title="На весь экран"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 3H3v6m12-6h6v6M3 15v6h6m6 0h6v-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+</div>
+</header>
+<main id="main" tabindex="-1"></main>
+<nav class="bottom-nav" aria-label="Разделы приложения">
+<a href="#people" data-nav="people"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M4 21v-2a8 8 0 0 1 16 0v2" stroke="currentColor" stroke-width="1.5"/></svg><span>Личности</span></a>
+<a href="#library" data-nav="library"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 5c4-2 6-1 9 1 3-2 5-3 9-1v15c-4-2-6-1-9 1-3-2-5-3-9-1V5Zm9 1v15" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span>Труды</span></a>
+<a href="#timeline" data-nav="timeline"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 6h13M8 12h13M3 18h13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="18" cy="6" r="2" stroke="currentColor" stroke-width="1.5"/><circle cx="6" cy="12" r="2" stroke="currentColor" stroke-width="1.5"/><circle cx="18" cy="18" r="2" stroke="currentColor" stroke-width="1.5"/></svg><span>Время</span></a>
+<a href="#favorites" data-nav="favorites"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4V3Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span>Избранное <b id="favorite-count"></b></span></a>
+</nav>
+</div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
