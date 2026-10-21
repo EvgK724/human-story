@@ -333,9 +333,10 @@ self.addEventListener('activate', event => {
     // An older worker may have served Human Story's cached document for this
     // separate app. Reload only those windows after its routes are excluded.
     const windows = await self.clients.matchAll({ type: 'window' });
-    await Promise.allSettled(windows
-      .filter(client => isHellasURL(new URL(client.url)))
-      .map(client => client.navigate(client.url)));
+    // Do not await navigation here: a navigation may wait for activation to finish.
+    for (const client of windows) {
+      if (isHellasURL(new URL(client.url))) client.navigate(client.url).catch(() => {});
+    }
   })());
 });
 
