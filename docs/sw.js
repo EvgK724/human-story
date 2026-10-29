@@ -2,10 +2,11 @@
 
 const VERSION = '2026-10-18-1';
 const SCOPE = new URL(self.registration.scope);
-const HELLAS_PATH = new URL('./hellas-atlas/', SCOPE).pathname;
-function isHellasURL(url) {
-  return url.origin === SCOPE.origin &&
-    (url.pathname === HELLAS_PATH.slice(0, -1) || url.pathname.startsWith(HELLAS_PATH));
+const INDEPENDENT_APP_PATHS = ['hellas-atlas', 'clinical-calc'].map(name =>
+  new URL(`./${name}/`, SCOPE).pathname);
+function isIndependentAppURL(url) {
+  return url.origin === SCOPE.origin && INDEPENDENT_APP_PATHS.some(path =>
+    url.pathname === path.slice(0, -1) || url.pathname.startsWith(path));
 }
 const CACHE_PREFIX = `human-story-${encodeURIComponent(SCOPE.pathname)}-`;
 const CACHE = `${CACHE_PREFIX}${VERSION}`;
@@ -330,12 +331,12 @@ self.addEventListener('activate', event => {
   // the whole library downloads. offline.js starts the durable message event.
   event.waitUntil((async () => {
     await self.clients.claim();
-    // An older worker may have served Human Story's cached document for this
-    // separate app. Reload only those windows after its routes are excluded.
+    // An older worker may have served Human Story's cached document for an
+    // independent app. Reload only those windows after their routes are excluded.
     const windows = await self.clients.matchAll({ type: 'window' });
     // Do not await navigation here: a navigation may wait for activation to finish.
     for (const client of windows) {
-      if (isHellasURL(new URL(client.url))) client.navigate(client.url).catch(() => {});
+      if (isIndependentAppURL(new URL(client.url))) client.navigate(client.url).catch(() => {});
     }
   })());
 });
@@ -375,8 +376,8 @@ async function rangedAudio(response, range) {
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
   if (event.request.method !== 'GET' || url.origin !== SCOPE.origin || !url.pathname.startsWith(SCOPE.pathname)) return;
-  // Hellas is independently hosted below this scope and must use its own files.
-  if (isHellasURL(url)) return;
+  // Independent apps below this scope must use their own files.
+  if (isIndependentAppURL(url)) return;
   url.search = '';
   url.hash = '';
   const isNavigation = event.request.mode === 'navigate';

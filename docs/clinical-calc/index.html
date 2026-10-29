@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#070d19">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Мера">
+  <meta name="description" content="Индекс массы тела и клиренс креатинина по Кокрофту–Голту. Креатинин в мкмоль/л или мг/дл, выбор массы, понятные формулы.">
+  <title>Мера · ИМТ и клиренс</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/icon-180.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="style.css?v=20261029-1">
+  <script type="module" src="app.js?v=20261029-1"></script>
+</head>
+<body>
+<div class="app-shell">
+  <header class="app-header">
+    <a class="brand" href="#calculate" aria-label="Мера — к расчёту"><span class="brand-mark" aria-hidden="true">м<span>·</span></span><span>МЕРА<small>КЛИНИЧЕСКИЙ РАСЧЁТ</small></span></a>
+    <div class="header-actions">
+      <button type="button" class="icon-button" id="fullscreen" aria-label="На весь экран" title="На весь экран"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 3H3v6m12-6h6v6M3 15v6h6m6 0h6v-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+      <a class="icon-button" href="#help" aria-label="Формулы и справка" title="Формулы и справка"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 11v6m0-10v1" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></a>
+    </div>
+  </header>
+
+  <main id="main">
+    <section id="calculate-view" class="view" aria-labelledby="page-title">
+      <header class="page-heading">
+        <div><p class="eyebrow">ДВА ПОКАЗАТЕЛЯ · ОДИН ЭКРАН</p><h1 id="page-title">ИМТ и функция почек</h1></div>
+        <p>Введите данные. <br>Результаты обновятся сразу.</p>
+      </header>
+      <div class="calculator-layout">
+        <section class="panel input-panel" aria-labelledby="input-title">
+          <div class="panel-heading"><h2 id="input-title">Исходные данные</h2><button id="example" class="text-button" type="button">Пример</button></div>
+          <p class="panel-caption">Для взрослых от 18 лет.</p>
+          <p id="example-note" class="example-note" hidden>Учебный пример. Замените данные своими.</p>
+          <form id="calculator-form" novalidate autocomplete="off">
+            <div class="field-grid">
+              <div class="field">
+                <label for="weight">Масса тела <span>кг</span></label>
+                <input id="weight" name="weight" type="text" inputmode="decimal" placeholder="70" spellcheck="false" aria-describedby="weight-error">
+                <p class="field-error" id="weight-error" hidden></p>
+              </div>
+              <div class="field">
+                <label for="height">Рост <span>см</span></label>
+                <input id="height" name="height" type="text" inputmode="decimal" placeholder="175" spellcheck="false" aria-describedby="height-error">
+                <p class="field-error" id="height-error" hidden></p>
+              </div>
+            </div>
+            <div class="section-divider"><span>Для Кокрофта–Голта</span></div>
+            <div class="age-sex-grid">
+              <div class="field">
+                <label for="age">Возраст <span>лет</span></label>
+                <input id="age" name="age" type="text" inputmode="numeric" placeholder="60" spellcheck="false" aria-describedby="age-error">
+                <p class="field-error" id="age-error" hidden></p>
+              </div>
+              <fieldset class="sex-field"><legend>Пол для формулы</legend><div class="segmented sex-segmented">
+                <label><input type="radio" name="sex" value="male"><span>Муж.</span></label>
+                <label><input type="radio" name="sex" value="female"><span>Жен.</span></label>
+              </div><p class="field-error" id="sex-error" hidden></p></fieldset>
+            </div>
+            <div class="field creatinine-field">
+              <div class="creatinine-label"><label for="creatinine">Креатинин крови</label><div class="segmented unit-switch" role="group" aria-label="Единицы креатинина">
+                <button type="button" data-unit="umol" aria-pressed="true">мкмоль/л</button><button type="button" data-unit="mgdl" aria-pressed="false">мг/дл</button>
+              </div></div>
+              <div class="input-with-unit"><input id="creatinine" name="creatinine" type="text" inputmode="decimal" placeholder="88,4" spellcheck="false" aria-describedby="creatinine-unit creatinine-error conversion-note"><span id="creatinine-unit">мкмоль/л</span></div>
+              <p class="field-error" id="creatinine-error" hidden></p>
+              <p id="conversion-note" class="input-note">Можно вводить точку или запятую.</p>
+            </div>
+            <details class="weight-options" id="weight-options">
+              <summary><span>Масса для формулы</span><span class="summary-value" id="mass-mode-summary">Фактическая</span></summary>
+              <div class="details-body">
+                <label class="sr-only" for="weight-mode">Выбор массы для Кокрофта–Голта</label>
+                <select id="weight-mode" name="weight-mode">
+                  <option value="actual">Фактическая масса</option>
+                  <option value="ideal">Идеальная · Devine</option>
+                  <option value="adjusted">Скорректированная · 0,4</option>
+                  <option value="manual">Задать массу вручную</option>
+                </select>
+                <div class="field manual-mass" id="manual-mass-field" hidden><label for="manual-weight">Масса для расчёта <span>кг</span></label><input id="manual-weight" name="manual-weight" type="text" inputmode="decimal" placeholder="Например, 65" aria-describedby="manual-weight-error"><p class="field-error" id="manual-weight-error" hidden></p></div>
+                <p class="input-note" id="mass-explanation">По умолчанию используется фактическая масса. При ожирении, отёках или выраженном дефиците массы выбор требует клинической оценки.</p>
+                <p class="field-error" id="mass-error" hidden></p>
+              </div>
+            </details>
+            <div class="form-actions"><button class="primary-button" type="submit">К результатам <span aria-hidden="true">↓</span></button><button class="secondary-button" type="button" id="clear-all">Очистить</button></div>
+          </form>
+        </section>
+
+        <div class="results-column" id="results" tabindex="-1">
+          <div class="results-heading"><h2>Результаты</h2><span class="live-label"><i></i>Авторасчёт</span></div>
+          <section class="panel result-card bmi-card" aria-labelledby="bmi-title">
+            <header class="result-top"><span class="number-label">01</span><div><p class="eyebrow">СОСТАВ ТЕЛА</p><h3 id="bmi-title">Индекс массы тела</h3></div><span class="result-symbol" aria-hidden="true">кг/м²</span></header>
+            <div class="result-number"><output id="bmi-value" for="weight height">—</output><span>кг/м²</span></div>
+            <p class="result-status" id="bmi-status">Введите массу и рост</p>
+            <div class="bmi-scale" aria-hidden="true"><div class="bmi-track"><i></i><i></i><i></i><i></i><i></i><i></i><span class="bmi-marker" id="bmi-marker" hidden></span></div><div class="scale-labels"><span>18,5</span><span>25</span><span>30</span><span>35</span><span>40</span></div></div>
+            <div class="result-detail" id="bmi-detail"><span>Масса при 18,5 ≤ ИМТ &lt; 25</span><strong id="bmi-range">—</strong></div>
+            <p class="fine-print">ИМТ — ориентир, а не оценка состава тела. Диапазон массы не является индивидуальной целью.</p>
+          </section>
+          <section class="panel result-card kidney-card" aria-labelledby="kidney-title">
+            <header class="result-top"><span class="number-label">02</span><div><p class="eyebrow">КОКРОФТ–ГОЛТ</p><h3 id="kidney-title">Клиренс креатинина</h3></div><svg class="kidney-symbol" viewBox="0 0 40 40" fill="none" aria-hidden="true"><path d="M14 6C5 7 3 18 7 27c2 5 8 9 12 5 3-3 1-6-2-8-4-2-4-7-1-10 3-3 3-8-2-8Zm12 0c9 1 11 12 7 21-2 5-8 9-12 5-3-3-1-6 2-8 4-2 4-7 1-10-3-3-3-8 2-8Z" stroke="currentColor" stroke-width="1.3"/></svg></header>
+            <div class="result-number"><output id="crcl-value" for="weight age creatinine">—</output><span>мл/мин</span></div>
+            <p class="result-status" id="crcl-status">Введите массу, возраст, пол и креатинин</p>
+            <div class="result-detail"><span>Масса в формуле</span><strong id="used-weight">—</strong></div>
+            <div class="result-detail"><span>Креатинин</span><strong id="used-creatinine">—</strong></div>
+            <p class="medical-note"><span aria-hidden="true">i</span><span>Это расчётный клиренс, не СКФ по CKD-EPI. Результат не приведён к площади тела 1,73 м².</span></p>
+            <p id="renal-caution" class="renal-caution" hidden></p>
+          </section>
+          <div class="result-actions"><button type="button" class="secondary-button copy-button" id="copy-result" disabled><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="8" y="8" width="12" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M15 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h3" stroke="currentColor" stroke-width="1.5"/></svg>Копировать результат</button></div>
+          <p class="clinical-footnote">Кокрофт–Голт применим при стабильном креатинине. При остром повреждении почек расчёт ненадёжен. Для дозирования учитывайте инструкцию конкретного препарата.</p>
+        </div>
+      </div>
+      <p class="privacy-note">Расчёт на устройстве. Приложение не отправляет и не сохраняет введённые данные.</p>
+    </section>
+
+    <section id="help-view" class="view help-view" aria-labelledby="help-title" hidden>
+      <header class="page-heading"><div><p class="eyebrow">ПОНЯТНАЯ МАТЕМАТИКА</p><h1 id="help-title">Формулы и смысл</h1></div></header>
+      <div class="help-grid">
+        <article class="panel help-card"><span class="number-label">01 · ИМТ</span><h2>Индекс массы тела</h2><div class="formula">ИМТ = масса / рост²</div><p>Масса в килограммах, рост в метрах. Классификация рассчитана для взрослых. ИМТ не различает мышцы и жировую ткань; при беременности его обычная интерпретация не подходит.</p><table><caption>Диапазоны ИМТ, кг/м²</caption><tbody><tr><th>Менее 18,5</th><td>Дефицит массы</td></tr><tr><th>18,5–&lt;25</th><td>Нормальный диапазон</td></tr><tr><th>25–&lt;30</th><td>Избыточная масса</td></tr><tr><th>30–&lt;35</th><td>Ожирение I степени</td></tr><tr><th>35–&lt;40</th><td>Ожирение II степени</td></tr><tr><th>40 и выше</th><td>Ожирение III степени</td></tr></tbody></table><p class="fine-print">Категория определяется по ИМТ до округления. На экране — два знака после запятой.</p></article>
+        <article class="panel help-card"><span class="number-label">02 · КЛИРЕНС</span><h2>Кокрофт–Голт</h2><div class="formula fraction"><span>(140 − возраст) × масса</span><span>72 × креатинин</span></div><p>Возраст — в годах, масса — в кг, креатинин — в мг/дл. Для женщин результат умножается на <strong>0,85</strong>. Единица результата — <strong>мл/мин</strong>.</p><div class="formula compact">мг/дл = мкмоль/л ÷ 88,4</div><p>Переключение единиц переводит введённое значение. Креатинин не округляется до 1 мг/дл, промежуточные вычисления не округляются.</p><p>Клиренс креатинина и расчётная СКФ — разные показатели. По этому результату приложение не устанавливает стадию ХБП.</p></article>
+        <article class="panel help-card"><span class="number-label">МАССА В ФОРМУЛЕ</span><h2>Выбор имеет значение</h2><p>По умолчанию используется фактическая масса. При ожирении она может завышать клиренс. Универсального выбора для всех пациентов нет: ориентируйтесь на клиническую ситуацию и требования к препарату.</p><dl><dt>Идеальная · Devine</dt><dd>Мужчины: 50 + 2,3 × (рост в дюймах − 60). Женщины: 45,5 + 2,3 × (рост в дюймах − 60). 1 дюйм = 2,54 см.</dd><dt>Скорректированная</dt><dd>Идеальная + 0,4 × (фактическая − идеальная). В приложении доступна, если фактическая масса не меньше идеальной.</dd><dt>Заданная вручную</dt><dd>Можно указать выбранную для расчёта массу отдельно. ИМТ при этом всегда использует фактическую массу.</dd></dl><p class="fine-print">Расчёт Devine здесь доступен при росте от 152,4 см. Эти режимы не являются автоматической рекомендацией выбора массы.</p></article>
+        <article class="panel help-card"><span class="number-label">ГРАНИЦЫ ПРИМЕНЕНИЯ</span><h2>Когда нужна осторожность</h2><p>Формула предназначена для взрослых при стабильной функции почек. При быстро меняющемся креатинине, беременности, диализе, ампутациях, выраженном истощении или необычной мышечной массе обычный расчёт может быть неприменим или неточен.</p><p>Для оценки СКФ используются другие уравнения, например CKD-EPI. Выбор показателя для дозирования зависит от конкретного препарата; клиренс не заменяет клиническое решение.</p><details><summary>Диапазоны ввода</summary><p>Возраст: 18–120 лет. Масса: 10–500 кг. Рост: 100–250 см. Креатинин должен быть положительным числом; необычно низкие или высокие значения сопровождаются напоминанием проверить единицы.</p></details></article>
+      </div>
+      <section class="panel sources-card"><h2>Источники</h2><div class="source-links">
+        <a href="https://pubmed.ncbi.nlm.nih.gov/1244564/" target="_blank" rel="noopener noreferrer"><span>Cockcroft & Gault, 1976</span><small>Оригинальная публикация ↗</small></a>
+        <a href="https://www.sps.nhs.uk/articles/calculating-kidney-function/" target="_blank" rel="noopener noreferrer"><span>NHS Specialist Pharmacy Service</span><small>Функция почек и выбор массы ↗</small></a>
+        <a href="https://www.kidney.org/professionals/kdoqi/cockcroft-gault-equation-estimating-creatinine-clearance" target="_blank" rel="noopener noreferrer"><span>National Kidney Foundation</span><small>Формула и её ограничения ↗</small></a>
+        <a href="https://www.niddk.nih.gov/research-funding/research-programs/kidney-clinical-research-epidemiology/laboratory/glomerular-filtration-rate-equations/adults" target="_blank" rel="noopener noreferrer"><span>NIDDK</span><small>Уравнения СКФ и единицы ↗</small></a>
+        <a href="https://www.who.int/news-room/fact-sheets/detail/obesity-and-overweight" target="_blank" rel="noopener noreferrer"><span>WHO · ИМТ у взрослых</span><small>Определение и пороги ↗</small></a>
+        <a href="https://www.cdc.gov/bmi/adult-calculator/bmi-categories.html" target="_blank" rel="noopener noreferrer"><span>CDC · ИМТ у взрослых</span><small>Диапазоны индекса массы тела ↗</small></a>
+        <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC4841935/" target="_blank" rel="noopener noreferrer"><span>Peterson et al., 2016</span><small>Формулы идеальной массы ↗</small></a>
+      </div><p class="fine-print">Справка проверена 29 октября 2026 года. Источники на английском языке.</p></section>
+      <section class="panel help-card"><h2>Как приложение на iPhone и iPad</h2><p>В Safari откройте «Поделиться» → «На экран Домой». Запуск с иконки открывает приложение без панелей браузера. Для загрузки нужен интернет.</p></section>
+    </section>
+
+    <section id="qr-view" class="view qr-view" aria-labelledby="qr-title" hidden>
+      <header class="page-heading"><div><p class="eyebrow">ВСЕГДА ПОД РУКОЙ</p><h1 id="qr-title">Открыть на устройстве</h1></div></header>
+      <div class="panel qr-panel"><img src="assets/qr-link.png" width="330" height="330" alt="QR-код: https://evgk724.github.io/human-story/clinical-calc/"><h2>Мера</h2><p>ИМТ и клиренс креатинина<br>по Кокрофту–Голту.</p><button id="copy-link" class="primary-button" type="button">Копировать ссылку</button><a class="secondary-button" href="assets/qr-link.png" download="mera-qr.png">Скачать QR-код</a><p class="address">evgk724.github.io/human-story/clinical-calc/</p></div>
+    </section>
+  </main>
+</div>
+<nav class="bottom-nav" aria-label="Разделы приложения">
+  <a href="#calculate" data-nav="calculate" aria-current="page"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="5" y="2" width="14" height="20" rx="3" stroke="currentColor" stroke-width="1.5"/><path d="M8 6h8M8 11h1m6 0h1m-8 4h1m6 0h1m-8 4h1m6 0h1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span>Расчёт</span></a>
+  <a href="#help" data-nav="help"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 5c4-2 6-1 9 1 3-2 5-3 9-1v15c-4-2-6-1-9 1-3-2-5-3-9-1V5Zm9 1v15" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span>Справка</span></a>
+  <a href="#qr" data-nav="qr"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h3v3h-3zM20 14v7h-6M17 20v-3" stroke="currentColor" stroke-width="1.5"/></svg><span>QR-код</span></a>
+</nav>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<div id="result-announcement" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+<dialog id="copy-dialog"><form method="dialog"><h2>Результат расчёта</h2><p>Выделите и скопируйте текст.</p><textarea id="copy-text" readonly aria-label="Текст результата"></textarea><button class="primary-button" value="close">Закрыть</button></form></dialog>
+<noscript><p class="noscript">Для работы калькулятора включите JavaScript в браузере.</p></noscript>
+</body>
+</html>

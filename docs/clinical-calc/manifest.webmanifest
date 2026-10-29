@@ -1,0 +1,27 @@
+{
+  "name": "Мера · ИМТ и клиренс",
+  "short_name": "Мера",
+  "lang": "ru",
+  "description": "Индекс массы тела и клиренс креатинина по Кокрофту–Голту.",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#070d19",
+  "theme_color": "#070d19",
+  "icons": [
+    {
+      "src": "assets/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
