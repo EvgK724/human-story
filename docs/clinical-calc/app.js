@@ -1,4 +1,4 @@
-import {parseNumber, bmi, bmiCategory, referenceWeightRange, creatinineMgDl, convertCreatinine, cockcroftGault, idealWeightDevine, adjustedWeight} from './calculations.js';
+import {parseNumber, bmi, bmiCategory, referenceWeightRange, creatinineMgDl, convertCreatinine, cockcroftGault, idealWeightDevine, adjustedWeight, ckdEpi2021, gfrCategory} from './calculations.js?v=20261029-2';
 
 const $ = selector => document.querySelector(selector);
 const inputIds = ['weight', 'height', 'age', 'creatinine', 'manual-weight'];
@@ -105,7 +105,9 @@ function calculate() {
   const category = bmiCategory(bmiValue);
   const range = underage ? null : referenceWeightRange(height);
   const crcl = cockcroftGault({age,weightKg:mass.mass,creatinine,unit:'mgdl',sex});
-  result = {weight,height,age,sex,creatinine,bmi:bmiValue,category,crcl,mass:mass.mass,mode:mass.mode,range};
+  const egfr = ckdEpi2021({age,creatinine,unit:'mgdl',sex});
+  const gfr = gfrCategory(egfr);
+  result = {weight,height,age,sex,creatinine,bmi:bmiValue,category,crcl,egfr,gfr,mass:mass.mass,mode:mass.mode,range};
 
   $('#bmi-value').textContent = bmiValue === null ? '—' : fixed(bmiValue,2);
   $('#bmi-status').textContent = category ? category.label : underage ? 'Взрослая классификация не применяется до 18 лет' : 'Введите массу и рост';
@@ -123,10 +125,17 @@ function calculate() {
   if (crcl !== null && bmiValue >= 30 && mass.mode === 'actual') notes.push('При ожирении фактическая масса может завышать клиренс. Выбор массы — в дополнительных параметрах.');
   $('#renal-caution').textContent = notes.join(' ');
   $('#renal-caution').hidden = notes.length === 0;
-  $('#copy-result').disabled = bmiValue === null && crcl === null;
+  $('#gfr-value').textContent = egfr === null ? '—' : fixed(egfr);
+  $('#gfr-category').hidden = !gfr;
+  $('#gfr-category').textContent = gfr?.key || '';
+  $('#gfr-category').dataset.category = gfr?.key || '';
+  $('#gfr-status').textContent = gfr ? gfr.label : 'Введите возраст, пол и креатинин';
+  document.querySelectorAll('[data-bmi-min]').forEach(row => row.classList.toggle('current-range',bmiValue !== null && bmiValue >= Number(row.dataset.bmiMin) && bmiValue < Number(row.dataset.bmiMax)));
+  document.querySelectorAll('[data-gfr]').forEach(row => row.classList.toggle('current-range',row.dataset.gfr === gfr?.key));
+  $('#copy-result').disabled = bmiValue === null && crcl === null && egfr === null;
   clearTimeout(announcementTimer);
   announcementTimer = setTimeout(() => {
-    $('#result-announcement').textContent = `${bmiValue === null ? 'ИМТ не рассчитан.' : `ИМТ ${fixed(bmiValue,2)}. ${category.label}.`} ${crcl === null ? 'Клиренс не рассчитан.' : `Клиренс креатинина ${fixed(crcl)} миллилитров в минуту.`}`;
+    $('#result-announcement').textContent = `${bmiValue === null ? 'ИМТ не рассчитан.' : `ИМТ ${fixed(bmiValue,2)}. ${category.label}.`} ${crcl === null ? 'Клиренс не рассчитан.' : `Клиренс креатинина ${fixed(crcl)} миллилитров в минуту.`} ${egfr === null ? 'СКФ не рассчитана.' : `Расчётная СКФ ${fixed(egfr)}. Категория ${gfr.key}. ${gfr.label}.`}`;
   },600);
 }
 function changeUnit(next) {
@@ -180,9 +189,12 @@ function resultText() {
   if(r.age!==null)lines.push(`Возраст: ${r.age} лет`);
   if(r.sex)lines.push(`Пол для формулы: ${r.sex==='female'?'женский':'мужской'}`);
   if(r.bmi!==null)lines.push('',`ИМТ: ${fixed(r.bmi,2)} кг/м²`,`${r.category.label} (по значению до округления)`);
-  if(r.crcl!==null)lines.push('',`Креатинин: ${format(r.creatinine*88.4,4)} мкмоль/л / ${format(r.creatinine,6)} мг/дл`,`Масса для Кокрофта–Голта: ${format(r.mass,4)} кг (${modeNames[r.mode].toLowerCase()})`,`Клиренс креатинина: ${fixed(r.crcl)} мл/мин`,'Кокрофт–Голт; без индексации на 1,73 м². Это не рСКФ CKD-EPI.','Для взрослых при стабильном креатинине. Дозирование — по инструкции препарата и клинической ситуации.');
+  if(r.creatinine!==null)lines.push('',`Креатинин: ${format(r.creatinine*88.4,4)} мкмоль/л / ${format(r.creatinine,6)} мг/дл`);
+  if(r.crcl!==null)lines.push('',`Масса для Кокрофта–Голта: ${format(r.mass,4)} кг (${modeNames[r.mode].toLowerCase()})`,`Клиренс креатинина: ${fixed(r.crcl)} мл/мин`,'Кокрофт–Голт; без индексации на 1,73 м². Это не рСКФ CKD-EPI.','Для взрослых при стабильном креатинине. Дозирование — по инструкции препарата и клинической ситуации.');
+  if(r.egfr!==null)lines.push('',`Расчётная СКФ CKD-EPI 2021: ${fixed(r.egfr)} мл/мин/1,73 м²`,`Категория СКФ: ${r.gfr.key} · ${r.gfr.label} (до округления)`,'Это не диагноз ХБП. Для ХБП изменения должны сохраняться ≥3 месяцев; G1–G2 требуют других признаков повреждения почек.');
   if(r.bmi===null)lines.push('','ИМТ не рассчитан: недостаточно корректных данных.');
   if(r.crcl===null)lines.push('','Клиренс не рассчитан: недостаточно корректных данных.');
+  if(r.egfr===null)lines.push('','СКФ не рассчитана: недостаточно корректных данных.');
   return lines.join('\n');
 }
 async function copy(text, success) {
@@ -224,7 +236,7 @@ $('#calculator-form').addEventListener('submit',event => {
   if(renalStarted){required.add('age');required.add('sex');required.add('creatinine');const mode=$('#weight-mode').value;if(mode==='actual'||mode==='adjusted')required.add('weight');if(mode==='ideal'||mode==='adjusted')required.add('height');if(mode==='manual')required.add('manual-weight');}
   if(!renalStarted || raw('height')){required.add('weight');required.add('height');}
   calculate();
-  if(result.bmi===null && result.crcl===null){
+  if(result.bmi===null && result.crcl===null && result.egfr===null){
     const invalid=$('#calculator-form [aria-invalid="true"]');
     if(invalid){if(invalid.closest('details'))invalid.closest('details').open=true;invalid.focus();}
     toast('Проверьте отмеченные поля.');

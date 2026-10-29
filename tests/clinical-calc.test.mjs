@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {
   parseNumber, bmi, bmiCategory, referenceWeightRange,
   creatinineMgDl, convertCreatinine, cockcroftGault,
-  idealWeightDevine, adjustedWeight,
+  idealWeightDevine, adjustedWeight, ckdEpi2021, gfrCategory,
 } from '../docs/clinical-calc/calculations.js';
 
 const near = (actual, expected, tolerance = 1e-10) => {
@@ -90,4 +90,46 @@ test('Devine and adjusted weight use explicit sex and height limits', () => {
   near(adjustedWeight(73, 73), 73);
   assert.equal(adjustedWeight(60, 73), null);
   assert.equal(adjustedWeight(100, NaN), null);
+});
+
+
+test('underweight severity uses raw BMI at 16, 17 and 18.5 boundaries', () => {
+  for (const [value, severity, min, max] of [[15.99999, 'severe', 0, 16], [16, 'moderate', 16, 17], [16.99999, 'moderate', 16, 17], [17, 'mild', 17, 18.5], [18.49999, 'mild', 17, 18.5]]) {
+    const category = bmiCategory(value);
+    assert.equal(category.key, 'underweight');
+    assert.equal(category.severity, severity);
+    assert.equal(category.min, min);
+    assert.equal(category.max, max);
+  }
+  assert.equal(bmiCategory(18.5).key, 'normal');
+  assert.equal(bmiCategory(18.5).severity, undefined);
+});
+
+test('CKD-EPI 2021 independently calculated reference values exercise both creatinine branches', () => {
+  // Expected values calculated with Python Decimal at 40-digit precision.
+  near(ckdEpi2021(male), 86.162620779669046);
+  near(ckdEpi2021({ ...male, sex: 'female' }), 64.495000353945031);
+  near(ckdEpi2021({ ...male, age: 40, creatinine: 0.7 }), 119.456468227015922);
+  near(ckdEpi2021({ ...male, age: 40, creatinine: 0.5, sex: 'female' }), 121.519342171252229);
+  near(ckdEpi2021({ ...male, age: 18 }), 111.882257070599460);
+  near(ckdEpi2021({ ...male, weightKg: 140 }), ckdEpi2021(male));
+});
+
+test('CKD-EPI units agree without intermediate rounding and invalid inputs return null', () => {
+  near(ckdEpi2021({ ...male, creatinine: 88.4, unit: 'umol' }), ckdEpi2021(male));
+  near(ckdEpi2021({ ...male, creatinine: 44.2, unit: 'umol', sex: 'female' }), ckdEpi2021({ ...male, creatinine: 0.5, sex: 'female' }));
+  assert.equal(ckdEpi2021(), null);
+  assert.equal(ckdEpi2021(null), null);
+  for (const extra of [{ age: 17 }, { age: 121 }, { age: NaN }, { age: '60' }, { creatinine: 0 }, { creatinine: -1 }, { creatinine: Infinity }, { creatinine: '1' }, { sex: '' }, { sex: 'unknown' }, { unit: 'mg/L' }]) {
+    assert.equal(ckdEpi2021({ ...male, ...extra }), null);
+  }
+  assert.ok(ckdEpi2021({ ...male, age: 120 }) > 0);
+});
+
+test('GFR categories use unrounded values at all KDIGO category boundaries', () => {
+  for (const [value, key] of [[0, 'G5'], [14.99999, 'G5'], [15, 'G4'], [29.99999, 'G4'], [30, 'G3b'], [44.99999, 'G3b'], [45, 'G3a'], [59.99999, 'G3a'], [60, 'G2'], [89.99999, 'G2'], [90, 'G1'], [180, 'G1']]) {
+    assert.equal(gfrCategory(value).key, key);
+  }
+  assert.deepEqual(gfrCategory(90), { key: 'G1', label: 'Нормальная или высокая', min: 90, max: Infinity });
+  for (const value of [null, undefined, NaN, Infinity, -1, '60']) assert.equal(gfrCategory(value), null);
 });

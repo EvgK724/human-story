@@ -27,7 +27,9 @@ export function bmi(weightKg, heightCm) {
 export function bmiCategory(value) {
   if (!finite(value) || value <= 0) return null;
   const categories = [
-    { key: 'underweight', label: 'Дефицит массы тела', min: 0, max: 18.5 },
+    { key: 'underweight', severity: 'severe', label: 'Выраженный дефицит массы · III степень', min: 0, max: 16 },
+    { key: 'underweight', severity: 'moderate', label: 'Умеренный дефицит массы · II степень', min: 16, max: 17 },
+    { key: 'underweight', severity: 'mild', label: 'Лёгкий дефицит массы · I степень', min: 17, max: 18.5 },
     { key: 'normal', label: 'Нормальная масса тела', min: 18.5, max: 25 },
     { key: 'overweight', label: 'Избыточная масса тела', min: 25, max: 30 },
     { key: 'obesity1', label: 'Ожирение I степени', min: 30, max: 35 },
@@ -72,6 +74,33 @@ export function cockcroftGault(inputs = {}) {
   const mgDl = creatinineMgDl(creatinine, unit);
   if (mgDl === null || mgDl <= 0) return null;
   return finiteResult(((140 - age) * weightKg / 72 / mgDl) * (sex === 'female' ? 0.85 : 1));
+}
+
+/** Race-free CKD-EPI 2021 creatinine equation: eGFR in mL/min/1.73 m². */
+export function ckdEpi2021(inputs = {}) {
+  if (!inputs || typeof inputs !== 'object') return null;
+  const { age, creatinine, unit, sex } = inputs;
+  if (!between(age, 18, 120) || !validSex(sex)) return null;
+  const mgDl = creatinineMgDl(creatinine, unit);
+  if (mgDl === null || mgDl <= 0) return null;
+  const female = sex === 'female';
+  const ratio = mgDl / (female ? 0.7 : 0.9);
+  const alpha = female ? -0.241 : -0.302;
+  return finiteResult(142 * Math.min(ratio, 1) ** alpha * Math.max(ratio, 1) ** -1.2 * 0.9938 ** age * (female ? 1.012 : 1));
+}
+
+/** GFR category alone does not establish CKD or its cause/chronicity. */
+export function gfrCategory(value) {
+  if (!finite(value) || value < 0) return null;
+  const categories = [
+    { key: 'G5', label: 'Диапазон почечной недостаточности', min: 0, max: 15 },
+    { key: 'G4', label: 'Резко сниженная', min: 15, max: 30 },
+    { key: 'G3b', label: 'Существенно сниженная', min: 30, max: 45 },
+    { key: 'G3a', label: 'Умеренно сниженная', min: 45, max: 60 },
+    { key: 'G2', label: 'Незначительно сниженная', min: 60, max: 90 },
+    { key: 'G1', label: 'Нормальная или высокая', min: 90, max: Infinity },
+  ];
+  return categories.find(category => value < category.max);
 }
 
 /** Devine's formula is not extrapolated below 5 feet (152.4 cm). */
